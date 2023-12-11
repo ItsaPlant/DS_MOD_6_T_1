@@ -2,18 +2,6 @@ import sqlite3
 from sqlite3 import Error
 
 
-# def create_connection(db_file):
-#    """ create a database connection to a SQLite database """
-#    conn = None
-#    try:
-#        conn = sqlite3.connect(db_file)
-#        print(f"Connected to {db_file}, sqlite version: {sqlite3.version}")
-#    except Error as e:
-#        print(e)
-#    finally:
-#        if conn:
-#            conn.close()
-
 def create_connection(db_file):
     """ create a database connection to the SQLite database
     specified by db_file
@@ -154,7 +142,8 @@ def delete_where(conn, table, **kwargs):
     print('DELETED SELECTED')
 
 
-sql_create_cafes = """
+if __name__ == '__main__':
+    sql_create_cafes = """
    -- cafes table
    CREATE TABLE IF NOT EXISTS cafes (
       id integer PRIMARY KEY,
@@ -164,39 +153,38 @@ sql_create_cafes = """
    );
    """
 
-sql_create_orders = """
-   -- orders table
-   CREATE TABLE IF NOT EXISTS orders (
-      id integer PRIMARY KEY,
-      cafe_id integer NOT NULL,
-      stolik VARCHAR(250) NOT NULL,
-      zawartosc TEXT,
-      status VARCHAR(15) NOT NULL,
-      start_date text NOT NULL,
-      end_date text NOT NULL,
-      FOREIGN KEY (cafe_id) REFERENCES cafes (id)
-   );
-   """
-
-sql_insert_cafe = sql = '''
-INSERT INTO cafes(nazwa, start_date, end_date)
-VALUES(?,?,?)
-'''
-
-sql_insert_order = '''
-INSERT INTO orders(cafe_id, stolik, zawartosc, status, start_date, end_date)
-VALUES(?,?,?,?,?,?)
-'''
-
-if __name__ == '__main__':
+    sql_create_orders = """
+       -- orders table
+       CREATE TABLE IF NOT EXISTS orders (
+          id integer PRIMARY KEY,
+          cafe_id integer NOT NULL,
+          stolik VARCHAR(250) NOT NULL,
+          zawartosc TEXT,
+          status VARCHAR(15) NOT NULL,
+          start_date text NOT NULL,
+          end_date text NOT NULL,
+          FOREIGN KEY (cafe_id) REFERENCES cafes (id)
+       );
+       """
+    
+    sql_insert_cafe = '''
+    INSERT INTO cafes(nazwa, start_date, end_date)
+    VALUES(?,?,?)
+    '''
+    
+    sql_insert_order = '''
+    INSERT INTO orders(cafe_id, stolik, zawartosc, status, start_date, end_date)
+    VALUES(?,?,?,?,?,?)
+    '''
     db_file = r"cafe_database.db"
     conn = create_connection(db_file)
-    if conn is not None:
+    if conn:
         #add tables
         execute_sql(conn, sql_create_cafes)
         execute_sql(conn, sql_create_orders)
         #add tables contents
         delete_all(conn, 'cafes')#tutaj, żeby się nie mnożyło tych postaci
+        delete_all(conn, 'orders')#tutaj, żeby się nie mnożyło tych postaci
         cafe = ("Pozegnanie z Afryka Warszawa", "2020-05-11 00:00:00", "2020-05-13 00:00:00")
         cafe_id = add_data(conn, sql_insert_cafe, cafe)
         order = (
@@ -209,8 +197,8 @@ if __name__ == '__main__':
         )
         task_id = add_data(conn, sql_insert_order, order)
         #Query
-        projects = select_all(conn, 'cafes')
-        tasks = select_where(conn, 'orders', status='done')
+        cafes = select_all(conn, 'cafes')
+        orders = select_where(conn, 'orders', status='done')
         #uptade
         update(conn, 'orders', 2, status='done')
         #delete
@@ -219,7 +207,7 @@ if __name__ == '__main__':
         #close connection
         close_connection(conn)
         print(cafe_id, task_id)
-        for proj in projects:
-            print(proj)
-        for task in tasks:
-            print(task)
+        for cafe in cafes:
+            print(cafe)
+        for order in orders:
+            print(order)
